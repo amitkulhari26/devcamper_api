@@ -1,4 +1,3 @@
-const slugify = require('slugify');
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/async');
 const Bootcamp = require('../Models/Bootcamp');
