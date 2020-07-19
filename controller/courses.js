@@ -47,6 +47,7 @@ exports.getCourse = asyncHandler(async (req, res, next) => {
 //@route POST /api/v1/bootcamps/:bootcampID/courses/
 //@access Private
 exports.createCourse = asyncHandler(async (req, res, next) => {
+    console.log(req.params.bootcampID);
     req.body.bootcamp = req.params.bootcampID;
     const bootcamp = await Bootcamp.findById(req.params.bootcampID);
     if (!bootcamp) {
@@ -90,5 +91,4 @@ exports.deleteCourse = asyncHandler(async (req, res, next) => {
         success: true,
         data: {}
     });
-
 });
