@@ -11,8 +11,10 @@ exports.registerUser = asyncHandler(async (req, res, next) => {
     const user = await User.create({
         name, email, password, role
     });
+    //Genrate Token
+    const token = user.getSignedJwtToken();
     res.status(200).json({
         success: true,
-        data: user
+        token
     });
 });
