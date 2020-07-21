@@ -5,18 +5,21 @@ const { getCourses, getCourse, createCourse, updateCourse, deleteCourse } = requ
 const Course = require('../Models/Course');
 const advancedResult = require('../middleware/advancedResult');
 
+const { protect } = require('../middleware/auth');
+
+
 router
     .route('/')
     .get(advancedResult(Course, {
         path: 'bootcamp',
         select: 'name description'
     }), getCourses)
-    .post(createCourse);
+    .post(protect, createCourse);
 
 router
     .route('/:id')
     .get(getCourse)
-    .put(updateCourse)
-    .delete(deleteCourse);
+    .put(protect, updateCourse)
+    .delete(protect, deleteCourse);
 
 module.exports = router;
