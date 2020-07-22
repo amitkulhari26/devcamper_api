@@ -31,3 +31,12 @@ exports.protect = asyncHandler(async (req, res, next) => {
     }
 
 });
+
+exports.authorize = (...roles) => {
+    return (req, res, next) => {
+        if (!roles.includes(req.user.role)) {
+            return next(new ErrorResponse(`Not authorise to access this resourse for ${req.user.role}`, 403));
+        }
+        next();
+    };
+};
