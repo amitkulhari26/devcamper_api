@@ -1,6 +1,7 @@
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/async');
 const User = require('../Models/User');
+const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
 
 //@desc   Register user
@@ -51,6 +52,49 @@ exports.getMe = asyncHandler(async (req, res, next) => {
     });
 });
 
+//@ desc  Update User details for logged in user
+//@route  PUR /api/v1/auth/updatedetails
+//@access Private
+exports.updateDetails = asyncHandler(async (req, res, next) => {
+
+    const fieldsToUpdate = {
+        email: req.body.email,
+        name: req.body.name
+    };
+
+    const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+        new: true,
+        runValidators: true
+    });
+
+    res.status(200).json({
+        success: true,
+        data: user
+    });
+});
+
+//@ desc  Update password
+//@route  PUT /api/v1/auth/updatepassword
+//@access Private
+exports.updatePassword = asyncHandler(async (req, res, next) => {
+
+
+    const user = await (await User.findById(req.user.id)).isSelected('+password');
+    if (!user) {
+        return next(new ErrorResponse(`No User found`, 404));
+    }
+
+    // Check current password
+    if (!(await user.matchPassword(req.body.currentPassword))) {
+        return next(new ErrorResponse(`Current password is incorrect`, 401));
+    }
+    user.password = req.body.newPassword;
+
+    await user.save();
+
+    sendTokenResponse(user, 200, res);
+});
+
 //@desc   Forgot password
 //@route  POST /api/v1/auth/forgotpassword
 //@access Public
@@ -68,7 +112,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     //Create Reset Url
-    const resetUrl = `${req.host}://${req.get('host')}/api/v1/resetpassword/${resetToken}`;
+    const resetUrl = `${req.host}://${req.get('host')}/api/v1/auth/resetpassword/${resetToken}`;
 
     // Create Message
 
@@ -100,6 +144,32 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
         data: user
     });
 });
+
+
+//@desc    Reset Password
+//@route   PUT /api/v1/auth/resetpassword/:resetToken
+//@access  Public
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+    // Get hashed token
+    const resetPasswordToken = crypto.createHash('sha256').update(req.params.resetToken).digest('hex');
+
+    const user = await User.find({ resetPasswordToken, resetPasswordExpire: { $gt: Date.now() } });
+
+    if (!user) {
+        return next(new ErrorResponse(`Invalid token`, 400));
+    }
+
+    //Set Password
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    user.save();
+
+    sendTokenResponse(user, 200, res);
+
+});
+
 
 // Get Token from model  create cookie and  send it to client 
 const sendTokenResponse = (user, statusCode, res) => {
