@@ -18,6 +18,7 @@ const courses = require('./routes/courses');
 const auth = require('./routes/auth');
 
 const app = express();
+
 // Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

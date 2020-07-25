@@ -61,6 +61,7 @@ exports.updateBootcamp = asyncHandler(async (req, res, next) => {
         new: true,
         runValidators: true
     });
+
     res.status(200).json({
         status: true,
         message: bootcamp
@@ -80,8 +81,9 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
     if (bootcamp.user.toSring() !== req.user.id && req.user.role !== 'admin') {
         return next(new ErrorResponse(`User ${req.params.id} is not authroized to Delete to bootcamp`), 401);
     }
+
     // Delete bootcamp
-    bootcamp.remove();
+    await bootcamp.remove();
 
     res.status(200).json({
         status: true,
@@ -138,6 +140,11 @@ exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
     // Check file size
     if (file.size > process.env.MAX_FILE_UPLOAD) {
         return next(new ErrorResponse(`File Image should be less than ${process.env.MAX_FILE_UPLOAD} MB`, 400));
+    }
+
+    // Make sure user is bootcamp owner
+    if (bootcamp.user.toSring() !== req.user.id && req.user.role !== 'admin') {
+        return next(new ErrorResponse(`User ${req.params.id} is not authroized to Delete to bootcamp`), 401);
     }
 
     // Create custom filename
