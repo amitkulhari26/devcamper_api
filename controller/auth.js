@@ -78,8 +78,7 @@ exports.updateDetails = asyncHandler(async (req, res, next) => {
 //@access Private
 exports.updatePassword = asyncHandler(async (req, res, next) => {
 
-
-    const user = await (await User.findById(req.user.id)).isSelected('+password');
+    const user = await User.findById(req.user.id).select('+password');
     if (!user) {
         return next(new ErrorResponse(`No User found`, 404));
     }
