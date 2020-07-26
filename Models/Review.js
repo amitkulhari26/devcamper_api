@@ -42,7 +42,7 @@ ReviewSchema.statics.getAverageRating = async function (bootcampId) {
     const obj = await this.aggregate([
         { $match: { bootcamp: bootcampId } },
         {
-            $group: { _id: "$bootcamp", avgRating: { $avg: "$tuition" } }
+            $group: { _id: "$bootcamp", avgRating: { $avg: "$rating" } }
         }
     ]);
     try {
